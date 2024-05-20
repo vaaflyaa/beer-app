@@ -5,62 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beer Collector App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body {
-            color: var(--tg-theme-text-color);
-            background: var(--tg-theme-bg-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 18px;
-        }
-
-        .hint {
-            color: var(--tg-theme-hint-color);
-        }
-
-        .link {
-            color: var(--tg-theme-link-color);
-        }
-
-        .button {
-            background: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-            border: none;
-            font-size: 18px;
-        }
-
-        .button:not(:last-child) {
-            margin-bottom: 20px;
-        }
-
-        #usercard {
-            text-align: center;
-        }
-
-        #error-message {
-            color: red;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="usercard"></div> <!-- Карта профиля пользователя -->
-    <p id="beer-status">Beer amount: 0</p> <!-- Текущее количество пива -->
-    <p id="error-message"></p> <!-- Сообщение об ошибке -->
-    <button id="collect-beer" class="button">Collect Beer</button> <!-- Кнопка сбора пива -->
-    <button id="btn" class="button">Show/Hide Main Button</button> <!-- Кнопка, чтобы скрыть / показать основную кнопку -->
-    <button id="btnED" class="button">Enable/Disable Main Button</button> <!-- Кнопка, чтобы сделать кнопку активной/неактивной -->
-    
-    <div id="referral-section">
-        <h3>Referral System</h3>
-        <p>Your Referral Code: <span id="referral-code">REF123</span></p>
-        <input type="text" id="referral-input" placeholder="Enter referral code">
-        <button id="submit-referral" class="button">Submit Referral</button>
-    </div>
-    
-    <div id="tasks-section">
-        <h3>Tasks</h3>
-        <ul id="tasks-list"></ul>
+    <div class="container">
+        <div id="usercard" class="card"></div> <!-- Карта профиля пользователя -->
+        <div class="card">
+            <p id="beer-status" class="status">Beer amount: 0</p> <!-- Текущее количество пива -->
+            <p id="error-message" class="error"></p> <!-- Сообщение об ошибке -->
+            <button id="collect-beer" class="button">Collect Beer</button> <!-- Кнопка сбора пива -->
+        </div>
+        <div class="buttons">
+            <button id="btn" class="button">Show/Hide Main Button</button> <!-- Кнопка, чтобы скрыть / показать основную кнопку -->
+            <button id="btnED" class="button">Enable/Disable Main Button</button> <!-- Кнопка, чтобы сделать кнопку активной/неактивной -->
+        </div>
+        <div id="referral-section" class="card">
+            <h3>Referral System</h3>
+            <p>Your Referral Code: <span id="referral-code">REF123</span></p>
+            <input type="text" id="referral-input" class="input" placeholder="Enter referral code">
+            <button id="submit-referral" class="button">Submit Referral</button>
+        </div>
+        <div id="tasks-section" class="card">
+            <h3>Tasks</h3>
+            <ul id="tasks-list"></ul>
+        </div>
     </div>
 
     <script>
