@@ -3,105 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beer Collector</title>
+    <title>Beer Collector App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body {
-            color: var(--tg-theme-text-color);
-            background: var(--tg-theme-bg-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 18px;
-        }
-
-        .hint {
-            color: var(--tg-theme-hint-color);
-        }
-
-        .link {
-            color: var(--tg-theme-link-color);
-        }
-
-        .button {
-            background: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-            border: none;
-            font-size: 18px;
-            padding: 10px 20px;
-            cursor: pointer;
-        }
-
-        .button:not(:last-child) {
-            margin-bottom: 20px;
-        }
-
-        #usercard {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="usercard"></div>
-    <p id="beer-status">Beer amount: 0</p>
-    <p id="error-message" class="hint"></p>
-    <button id="collect-beer" class="button">Collect Beer</button>
+    <div class="container">
+        <div id="usercard" class="card"></div> <!-- Карта профиля пользователя -->
+        <div class="card">
+            <p id="beer-status" class="status">Beer amount: 0</p> <!-- Текущее количество пива -->
+            <p id="error-message" class="error"></p> <!-- Сообщение об ошибке -->
+            <button id="collect-beer" class="button">Collect Beer</button> <!-- Кнопка сбора пива -->
+        </div>
+        <div class="buttons">
+            <button id="btn" class="button">Show/Hide Main Button</button> <!-- Кнопка, чтобы скрыть / показать основную кнопку -->
+            <button id="btnED" class="button">Enable/Disable Main Button</button> <!-- Кнопка, чтобы сделать кнопку активной/неактивной -->
+        </div>
+        <div id="referral-section" class="card">
+            <h3>Referral System</h3>
+            <p>Your Referral Code: <span id="referral-code">REF123</span></p>
+            <input type="text" id="referral-input" class="input" placeholder="Enter referral code">
+            <button id="submit-referral" class="button">Submit Referral</button>
+        </div>
+        <div id="tasks-section" class="card">
+            <h3>Tasks</h3>
+            <ul id="tasks-list"></ul>
+        </div>
+    </div>
+
     <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
+        let tg = window.Telegram.WebApp; // получаем объект webapp телеграма
 
-        const user = tg.initDataUnsafe.user;
+        tg.expand(); // расширяем на все окно
 
-        async function collectBeer() {
-            let response = await fetch('/collect_beer', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    telegram_id: user.id,
-                    first_name: user.first_name,
-                    last_name: user.last_name,
-                    username: user.username
-                })
-            });
-            let result = await response.json();
-            document.getElementById('beer-status').innerText = `Beer amount: ${result.beer_amount}`;
-            document.getElementById('error-message').innerText = result.message;
+        let beerAmount = 0;
+        let lastCollectTime = 0; // Время последнего сбора в миллисекундах
+
+        function updateBeerStatus() {
+            document.getElementById('beer-status').innerText = `Beer amount: ${beerAmount}`;
         }
 
-        document.getElementById('collect-beer').addEventListener('click', collectBeer);
-
-        async function getUserInfo() {
-            let response = await fetch('/user_info', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    telegram_id: user.id
-                })
-            });
-            let result = await response.json();
-            document.getElementById('beer-status').innerText = `Beer amount: ${result.beer_amount}`;
-            document.getElementById('error-message').innerText = result.message;
+        function updateErrorMessage(message) {
+            document.getElementById('error-message').innerText = message;
         }
 
-        getUserInfo();
+        // Функция для сбора пива
+        document.getElementById('collect-beer').addEventListener('click', function () {
+            let currentTime = Date.now();
+            if (currentTime - lastCollectTime >= 8 * 60 * 60 * 1000) { // Проверка прошло ли 8 часов
+                beerAmount++;
+                lastCollectTime = currentTime;
+                updateBeerStatus();
+                updateErrorMessage("");
+                tg.MainButton.show(); // показываем основную кнопку для отправки данных
+            } else {
+                updateErrorMessage("You can collect beer only once every 8 hours.");
+            }
+        });
 
-        let usercard = document.getElementById("usercard");
-        let profName = document.createElement('p');
-        profName.innerText = `${user.first_name} ${user.last_name} @${user.username} (${user.language_code})`;
-        usercard.appendChild(profName);
+        // Изменение текста и цвета основной кнопки
+        tg.MainButton.text = "Send Data"; // изменяем текст кнопки
+        tg.MainButton.setText("Send Data"); // изменяем текст кнопки иначе
+        tg.MainButton.textColor = "#FFFFFF"; // изменяем цвет текста кнопки
+        tg.MainButton.color = "#143F6B"; // изменяем цвет фона кнопки
+        tg.MainButton.setParams({ "color": "#143F6B" }); // изменяем параметры кнопки
 
-        let userid = document.createElement('p');
-        userid.innerText = `ID: ${user.id}`;
-        usercard.appendChild(userid);
+        // Обработчик события на первую HTML-кнопку для показа/скрытия основной кнопки Телеграма
+        document.getElementById('btn').addEventListener('click', function () {
+            if (tg.MainButton.isVisible) { // если кнопка показана
+                tg.MainButton.hide(); // скрываем кнопку
+            } else { // иначе
+                tg.MainButton.show(); // показываем кнопку
+            }
+        });
 
-        tg.onEvent('themeChanged', function() {
-            document.body.style.color = tg.themeParams.text_color || 'black';
-            document.body.style.backgroundColor = tg.themeParams.bg_color || 'white';
+        // Обработчик события на вторую HTML-кнопку для активации/деактивации основной кнопки Телеграма
+        let btnED = document.getElementById('btnED');
+        btnED.addEventListener('click', function () {
+            if (tg.MainButton.isActive) { // если кнопка активна
+                tg.MainButton.setParams({ "color": "#E0FFFF" }); // меняем цвет
+                tg.MainButton.disable(); // деактивируем кнопку
+            } else { // иначе
+                tg.MainButton.setParams({ "color": "#143F6B" }); // меняем цвет
+                tg.MainButton.enable(); // активируем кнопку
+            }
+        });
+
+        // Отправка данных при нажатии на основную кнопку Телеграма
+        Telegram.WebApp.onEvent('mainButtonClicked', function () {
+            tg.sendData(`Collected beer: ${beerAmount}`); // отправляем данные в строковом виде
+        });
+
+        // Вывод информации о пользователе
+        let usercard = document.getElementById("usercard"); // получаем блок usercard
+        let user = tg.initDataUnsafe.user;
+
+        let profName = document.createElement('p'); // создаем параграф
+        profName.innerText = `${user.first_name} ${user.last_name} (@${user.username}) (${user.language_code})`;
+        // выводим имя, фамилию, username и код языка
+        usercard.appendChild(profName); // добавляем параграф в usercard
+
+        let userid = document.createElement('p'); // создаем еще один параграф
+        userid.innerText = `ID: ${user.id}`; // показываем user_id
+        usercard.appendChild(userid); // добавляем параграф в usercard
+
+        // Реферальная система
+        document.getElementById('submit-referral').addEventListener('click', function () {
+            let referralCode = document.getElementById('referral-input').value;
+            if (referralCode) {
+                tg.sendData(`Referral code submitted: ${referralCode}`);
+            }
+        });
+
+        // Список заданий
+        const tasks = [
+            { id: 1, name: "Complete daily quiz", reward: 2 },
+            { id: 2, name: "Invite a friend", reward: 5 }
+        ];
+
+        let tasksList = document.getElementById('tasks-list');
+        tasks.forEach(task => {
+            let listItem = document.createElement('li');
+            listItem.innerText = `${task.name} - Reward: ${task.reward} beers`;
+            tasksList.appendChild(listItem);
         });
     </script>
 </body>
